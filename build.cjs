@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs');
+const path=require('node:path');
+const root=__dirname;
+const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
+const calendars={2026:JSON.parse(fs.readFileSync(path.join(root,'2026.json'),'utf8'))};
+const core=fs.readFileSync(path.join(root,'source-status.cjs'),'utf8').replace('__CALENDARS__',JSON.stringify(calendars));
+const body=fs.readFileSync(path.join(root,'source-client.cjs'),'utf8');
+const browser='/* '+pkg.name+' '+pkg.version+' | MIT */\nwindow.__ModuleLoader__.load({id:'+JSON.stringify(pkg.name)+',factory:(require)=>{\n"use strict";\nvar module={exports:{}};var exports=module.exports;\nvar core=(()=>{var module={exports:{}};\n'+core+'\nreturn module.exports;})();\n'+body+'\nreturn module.exports;}});\n';
+fs.writeFileSync(path.join(root,'status.cjs'),core);
+fs.writeFileSync(path.join(root,'client.js'),browser);
+console.log('Built '+pkg.name+'@'+pkg.version);
